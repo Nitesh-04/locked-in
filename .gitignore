@@ -1,0 +1,27 @@
+# Binaries & Compiled Files
+*.exe
+*.out
+*.o
+*.a
+*.so
+*.dll
+*.test
+
+# Go Modules & Dependencies
+/go/pkg/
+/go/bin/
+/go/src/
+/vendor/
+
+# Editor & OS Files
+*.swp
+*.swo
+.DS_Store
+.vscode/
+.idea/
+*.log
+
+# Environment & Config Files
+.env
+.env.local
+config.yaml
