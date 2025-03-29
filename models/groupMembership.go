@@ -6,7 +6,7 @@ import (
 	"github.com/google/uuid"
 )
 
-type GroupMember struct {
+type GroupMembership struct {
 	ID        uuid.UUID `json:"id" gorm:"type:uuid;default:gen_random_uuid();primaryKey"`
 	UserID    uuid.UUID `json:"userId" gorm:"type:uuid;not null"`
 	GroupID   uuid.UUID `json:"groupId" gorm:"type:uuid;not null"`
