@@ -43,3 +43,90 @@ func CreateUser(c *fiber.Ctx) error {
 		"user":    newUser,
 	})
 }
+
+func GetUserInfo(c *fiber.Ctx) error {
+	clerkId := c.Params("clerkID")
+
+	var user models.User
+	result := config.DB.Where("clerk_id = ?", clerkId).First(&user)
+
+	if result.Error != nil {
+		return c.Status(fiber.StatusNotFound).JSON(fiber.Map{
+			"error": "User not found",
+		})
+	}
+
+	return c.Status(fiber.StatusOK).JSON(fiber.Map{
+		"user": user,
+	})
+}
+
+func UpdateUserStatus(c *fiber.Ctx) error {
+
+	clerkID := c.Params("clerkId")
+
+	var request struct {
+		Status string `json:"status"`
+	}
+
+	if err := c.BodyParser(&request); err != nil {
+		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
+			"error": "Invalid request body",
+		})
+	}
+
+	validStatuses := map[string]bool{
+		"studying":  true,
+		"on_break":  true,
+		"offline":   true,
+	}
+
+	if !validStatuses[request.Status] {
+		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
+			"error": "Invalid status",
+		})
+	}
+
+	var user models.User
+	result := config.DB.Where("clerk_id = ?", clerkID).First(&user)
+
+	if result.Error != nil {
+		return c.Status(fiber.StatusNotFound).JSON(fiber.Map{
+			"error": "User not found",
+		})
+	}
+
+	user.Status = request.Status
+	config.DB.Save(&user)
+
+	return c.JSON(user)
+}
+
+func GetUserGroups(c *fiber.Ctx) error {
+	
+	clerkID := c.Params("clerkId")
+
+	var user models.User
+	result := config.DB.Where("clerk_id = ?", clerkID).First(&user)
+
+	if result.Error != nil {
+		return c.Status(fiber.StatusNotFound).JSON(fiber.Map{
+			"error": "User not found",
+		})
+	}
+
+	var groupMembers []models.GroupMembership
+
+	config.DB.Where("user_id = ?", user.ID).Find(&groupMembers)
+	
+	var groupIDs []uuid.UUID
+
+	for _, gm := range groupMembers {
+		groupIDs = append(groupIDs, gm.GroupID)
+	}
+
+	var groups []models.Group
+	config.DB.Where("id IN ?", groupIDs).Find(&groups)
+	
+	return c.JSON(groups)
+}

@@ -14,6 +14,6 @@ type StudySession struct {
 	EndedAt   *time.Time `json:"endedAt" gorm:"default:null"`
 	Duration  *int       `json:"duration" gorm:"default:null"`
 
-	User  User  `json:"user" gorm:"foreignKey:UserID"`
+	User  User  `json:"user" gorm:"foreignKey:ClerkID"`
 	Group Group `json:"group" gorm:"foreignKey:GroupID"`
 }

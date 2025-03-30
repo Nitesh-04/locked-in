@@ -21,6 +21,8 @@
 .idea/
 *.log
 
+*.tmp
+
 # Environment & Config Files
 .env
 .env.local

@@ -13,6 +13,6 @@ type GroupMembership struct {
 	Status    string    `json:"status" gorm:"type:text;default:'offline';check:status IN ('studying', 'on_break', 'offline')"`
 	JoinedAt  time.Time `json:"joinedAt" gorm:"autoCreateTime"`
 
-	User  User  `json:"user" gorm:"foreignKey:UserID"`
+	User  User  `json:"user" gorm:"foreignKey:ClerkID"`
 	Group Group `json:"group" gorm:"foreignKey:GroupID"`
 }
