@@ -101,32 +101,3 @@ func UpdateUserStatus(c *fiber.Ctx) error {
 
 	return c.JSON(user)
 }
-
-func GetUserGroups(c *fiber.Ctx) error {
-	
-	clerkID := c.Params("clerkId")
-
-	var user models.User
-	result := config.DB.Where("clerk_id = ?", clerkID).First(&user)
-
-	if result.Error != nil {
-		return c.Status(fiber.StatusNotFound).JSON(fiber.Map{
-			"error": "User not found",
-		})
-	}
-
-	var groupMembers []models.GroupMembership
-
-	config.DB.Where("user_id = ?", user.ID).Find(&groupMembers)
-	
-	var groupIDs []uuid.UUID
-
-	for _, gm := range groupMembers {
-		groupIDs = append(groupIDs, gm.GroupID)
-	}
-
-	var groups []models.Group
-	config.DB.Where("id IN ?", groupIDs).Find(&groups)
-	
-	return c.JSON(groups)
-}
