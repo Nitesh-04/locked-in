@@ -11,5 +11,6 @@ func UserRoutes(app *fiber.App) {
 	userGroup.Post("/", controllers.CreateUser)
 	userGroup.Get("/:clerkID", controllers.GetUserInfo)
 	userGroup.Patch("/:clerkID/status", controllers.UpdateUserStatus)
+	userGroup.Get("/:clerkID/groups", controllers.GetUserGroups)
 	
 }
