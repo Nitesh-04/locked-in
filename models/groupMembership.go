@@ -10,7 +10,6 @@ type GroupMembership struct {
 	ID        uuid.UUID `json:"id" gorm:"type:uuid;default:gen_random_uuid();primaryKey"`
 	UserID    string    `json:"userId" gorm:"type:text;not null"`
 	GroupID   uuid.UUID `json:"groupId" gorm:"type:uuid;not null"`
-	Status    string    `json:"status" gorm:"type:text;default:'offline';check:status IN ('studying', 'on_break', 'offline')"`
 	JoinedAt  time.Time `json:"joinedAt" gorm:"autoCreateTime"`
 
 	User  User  `json:"user" gorm:"foreignKey:UserID;references:ClerkID"`

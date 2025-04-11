@@ -101,3 +101,31 @@ func UpdateUserStatus(c *fiber.Ctx) error {
 
 	return c.JSON(user)
 }
+
+func GetUserGroups (c *fiber.Ctx) error {
+	clerkId := c.Params("clerkID")
+	if clerkId == "" {
+		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
+			"error": "Missing clerkID",
+		})
+	}
+
+	var memberships []models.GroupMembership
+
+	err := config.DB.Preload("Group").Where("user_id = ?", clerkId).Find(&memberships).Error
+
+	if err != nil {
+		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
+			"error": "Failed to retrieve groups",
+		})
+	}
+
+	var groups []models.Group
+	for _, membership := range memberships {
+		groups = append(groups, membership.Group)
+	}
+
+	return c.Status(fiber.StatusOK).JSON(fiber.Map{
+		"groups": groups,
+	})
+}

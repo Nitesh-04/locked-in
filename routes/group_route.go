@@ -7,7 +7,7 @@ import (
 
 func GroupRoutes(app *fiber.App) {
 
-	groupGroup := app.Group("/group")
-	groupGroup.Post("/", controllers.CreateGroup)
-	groupGroup.Get("/:groupID", controllers.GetGroupInfo)
+	group := app.Group("/group")
+	group.Post("/", controllers.CreateGroup)
+	group.Get("/:groupID", controllers.GetGroupInfo)
 }
