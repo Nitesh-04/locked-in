@@ -4,64 +4,44 @@ import (
 	"github.com/Nitesh-04/locked-in/config"
 	"github.com/Nitesh-04/locked-in/models"
 
-	"github.com/google/uuid"
 	"github.com/gofiber/fiber/v2"
 )
 
 func JoinGroup(c *fiber.Ctx) error {
 
-	groupIdParam := c.Params("groupID")
-	groupId,err := uuid.Parse(groupIdParam)
-
-	if err != nil {
-		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
-			"error": "Invalid group ID",
-		})
+	type RequestBody struct {
+		Name	string `json:"name"`
+		ClerkId string `json:"clerkId"`
 	}
 
-	type RequesBody struct {
-		ClerkId string `json:"clerk_id"`
-	}
+	var req RequestBody
 
-	var reqBody RequesBody
-
-	if err := c.BodyParser(&reqBody); err != nil || reqBody.ClerkId == "" {
+	if err := c.BodyParser(&req); err != nil {
 		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
-			"error": "Missing or invalid clerkID",
+			"error": "Invalid request",
 		})
 	}
 
 	var group models.Group
 
-	if err := config.DB.Where("id = ?", groupId).First(&group).Error; err != nil {
+	if err := config.DB.Where("name = ?", req.Name).First(&group).Error; err != nil {
 		return c.Status(fiber.StatusNotFound).JSON(fiber.Map{
 			"error": "Group not found",
 		})
 	}
 
-	var existing models.GroupMembership
+	var membership models.GroupMembership
 
-	err = config.DB.Where("group_id = ? AND clerk_id = ?", groupId, reqBody.ClerkId).First(&existing).Error
-
-	if err == nil {
-		return c.Status(fiber.StatusConflict).JSON(fiber.Map{
-			"error": "User already a member of the group",
+	if err := config.DB.Where("user_id = ? AND group_id = ?", req.ClerkId, group.ID).First(&membership).Error; err == nil {
+		return c.Status(fiber.StatusOK).JSON(fiber.Map{
+			"message": "User already a member of the group",
+			"group":   group,
 		})
 	}
 
-	var count int64
-
-	config.DB.Model(&models.GroupMembership{}).Where("group_id = ?", groupId).Count(&count)
-
-	if count >= 10 {
-		return c.Status(fiber.StatusForbidden).JSON(fiber.Map{
-			"error": "Group is full",
-		})
-	}
-
-	membership := models.GroupMembership{
-		UserID: reqBody.ClerkId,
-		GroupID: groupId,
+	membership = models.GroupMembership{
+		UserID:  req.ClerkId,
+		GroupID: group.ID,
 	}
 
 	if err := config.DB.Create(&membership).Error; err != nil {
@@ -71,8 +51,10 @@ func JoinGroup(c *fiber.Ctx) error {
 	}
 
 	return c.Status(fiber.StatusOK).JSON(fiber.Map{
-		"message": "Joined group successfully",
+		"message": "User joined the group successfully",
+		"group":   group,
 	})
+	
 }
 
 

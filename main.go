@@ -21,6 +21,9 @@ func main() {
 	app := fiber.New()
 
 	routes.UserRoutes(app)
+	routes.GroupRoutes(app)
+	routes.StudySessionRoutes(app)
+	routes.MembershipRoutes(app)
 
 	fmt.Println("Server running on port 8080")
 	log.Fatal(app.Listen(":8080"))

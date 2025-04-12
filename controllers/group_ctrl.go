@@ -1,6 +1,7 @@
 package controllers
 
 import (
+	"net/url"
 	"github.com/Nitesh-04/locked-in/config"
 	"github.com/Nitesh-04/locked-in/models"
 
@@ -60,10 +61,10 @@ func CreateGroup(c *fiber.Ctx) error {
 
 
 func GetGroupInfo(c *fiber.Ctx) error {
-	groupId := c.Params("groupID")
+	groupName := c.Params("groupName")
 
 	var group models.Group
-	result := config.DB.Where("id = ?", groupId).First(&group)
+	result := config.DB.Where("name = ?", groupName).First(&group)
 
 	if result.Error != nil {
 		return c.Status(fiber.StatusNotFound).JSON(fiber.Map{
@@ -77,10 +78,10 @@ func GetGroupInfo(c *fiber.Ctx) error {
 }
 
 func GetGroupUsers(c *fiber.Ctx) error {
-	groupId := c.Params("groupID")
+	groupName := c.Params("groupName")
 
 	var group models.Group
-	result := config.DB.Where("id = ?", groupId).First(&group)
+	result := config.DB.Where("name = ?", groupName).First(&group)
 
 	if result.Error != nil {
 		return c.Status(fiber.StatusNotFound).JSON(fiber.Map{
@@ -89,9 +90,10 @@ func GetGroupUsers(c *fiber.Ctx) error {
 	}
 
 	var users []models.User
-	if err := config.DB.Model(&models.GroupMembership{}).
-		Where("group_id = ?", group.ID).
-		Joins("JOIN users ON users.id = group_memberships.user_id").
+	if err := config.DB.
+		Model(&models.User{}).
+		Joins("JOIN group_memberships ON group_memberships.user_id = users.id").
+		Where("group_memberships.group_id = ?", group.ID).
 		Find(&users).Error; err != nil {
 		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
 			"error": "Failed to retrieve group members",
@@ -105,10 +107,18 @@ func GetGroupUsers(c *fiber.Ctx) error {
 
 
 func DeleteGroup(c *fiber.Ctx) error {
-	groupId := c.Params("groupID")
+	groupGotName := c.Params("groupName")
+
+	groupName, err := url.QueryUnescape(groupGotName)
+
+	if err != nil {
+		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
+			"error": "Invalid group name encoding",
+		})
+	}
 
 	var group models.Group
-	result := config.DB.Where("id = ?", groupId).First(&group)
+	result := config.DB.Where("name = ?", groupName).First(&group)
 
 	if result.Error != nil {
 		return c.Status(fiber.StatusNotFound).JSON(fiber.Map{

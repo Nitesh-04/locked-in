@@ -8,6 +8,6 @@ import (
 func MembershipRoutes(app *fiber.App) {
 
 	membership := app.Group("/group")
-	membership.Post("/groups/:groupID/join", controllers.JoinGroup)
+	membership.Post("/join", controllers.JoinGroup)
 
 }
