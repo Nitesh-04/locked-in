@@ -102,7 +102,7 @@ func UpdateUserStatus(c *fiber.Ctx) error {
 	return c.JSON(user)
 }
 
-func GetUserGroups (c *fiber.Ctx) error {
+func GetUserGroups(c *fiber.Ctx) error {
 	clerkId := c.Params("clerkID")
 	if clerkId == "" {
 		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
