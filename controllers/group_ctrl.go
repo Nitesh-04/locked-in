@@ -92,7 +92,7 @@ func GetGroupUsers(c *fiber.Ctx) error {
 	var users []models.User
 	if err := config.DB.
 		Model(&models.User{}).
-		Joins("JOIN group_memberships ON group_memberships.user_id = users.id").
+		Joins("JOIN group_memberships ON group_memberships.user_id = users.clerk_id").
 		Where("group_memberships.group_id = ?", group.ID).
 		Find(&users).Error; err != nil {
 		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
@@ -110,7 +110,6 @@ func DeleteGroup(c *fiber.Ctx) error {
 	groupGotName := c.Params("groupName")
 
 	groupName, err := url.QueryUnescape(groupGotName)
-
 	if err != nil {
 		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
 			"error": "Invalid group name encoding",
@@ -119,10 +118,15 @@ func DeleteGroup(c *fiber.Ctx) error {
 
 	var group models.Group
 	result := config.DB.Where("name = ?", groupName).First(&group)
-
 	if result.Error != nil {
 		return c.Status(fiber.StatusNotFound).JSON(fiber.Map{
 			"error": "Group not found",
+		})
+	}
+	
+	if err := config.DB.Where("group_id = ?", group.ID).Delete(&models.GroupMembership{}).Error; err != nil {
+		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
+			"error": "Failed to delete group memberships",
 		})
 	}
 
