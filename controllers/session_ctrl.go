@@ -36,7 +36,28 @@ func StartSession(c *fiber.Ctx) error {
 		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"error": "Failed to start session"})
 	}
 
-	return c.Status(fiber.StatusOK).JSON(session)
+
+	var user models.User
+	result := config.DB.Where("clerk_id = ?",session.UserID).First(&user)
+
+	if result.Error != nil {
+		return c.Status(fiber.StatusNotFound).JSON(fiber.Map{
+			"error": "User not found",
+		})
+	}
+
+	user.Status = "studying"
+	config.DB.Save(&user)
+
+	var populatedSession models.StudySession
+	if err := config.DB.Preload("User").Preload("Group").First(&populatedSession, "id = ?", session.ID).Error; err != nil {
+		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
+			"error": "Failed to load session details",
+		})
+	}
+
+	return c.Status(fiber.StatusOK).JSON(populatedSession)
+
 }
 
 func EndSession(c *fiber.Ctx) error {
@@ -68,5 +89,25 @@ func EndSession(c *fiber.Ctx) error {
 		})
 	}
 
-	return c.Status(fiber.StatusOK).JSON(session)
+	var user models.User
+
+	result := config.DB.Where("clerk_id = ?", session.UserID).First(&user)
+
+	if result.Error != nil {
+		return c.Status(fiber.StatusNotFound).JSON(fiber.Map{
+			"error": "User not found",
+		})
+	}
+
+	user.Status = "offline"
+	config.DB.Save(&user)
+
+	var populatedSession models.StudySession
+	if err := config.DB.Preload("User").Preload("Group").First(&populatedSession, "id = ?", session.ID).Error; err != nil {
+		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
+			"error": "Failed to load session details",
+		})
+	}
+
+	return c.Status(fiber.StatusOK).JSON(populatedSession)
 }
