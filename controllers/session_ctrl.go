@@ -11,7 +11,6 @@ import (
 
 type StartSessionInput struct {
 	ClerkID string    `json:"clerkId"`
-	GroupID uuid.UUID `json:"groupId"`
 }
 
 type EndSessionInput struct {
@@ -28,7 +27,6 @@ func StartSession(c *fiber.Ctx) error {
 	session := models.StudySession{
 		ID:        uuid.New(),
 		UserID:   input.ClerkID,
-		GroupID:   input.GroupID,
 		StartedAt: time.Now(),
 	}
 
@@ -50,7 +48,7 @@ func StartSession(c *fiber.Ctx) error {
 	config.DB.Save(&user)
 
 	var populatedSession models.StudySession
-	if err := config.DB.Preload("User").Preload("Group").First(&populatedSession, "id = ?", session.ID).Error; err != nil {
+	if err := config.DB.Preload("User").First(&populatedSession, "id = ?", session.ID).Error; err != nil {
 		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
 			"error": "Failed to load session details",
 		})
@@ -103,7 +101,7 @@ func EndSession(c *fiber.Ctx) error {
 	config.DB.Save(&user)
 
 	var populatedSession models.StudySession
-	if err := config.DB.Preload("User").Preload("Group").First(&populatedSession, "id = ?", session.ID).Error; err != nil {
+	if err := config.DB.Preload("User").First(&populatedSession, "id = ?", session.ID).Error; err != nil {
 		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
 			"error": "Failed to load session details",
 		})

@@ -1,11 +1,14 @@
 package controllers
 
 import (
+	"errors"
+
 	"github.com/Nitesh-04/locked-in/config"
 	"github.com/Nitesh-04/locked-in/models"
+	"gorm.io/gorm"
 
-	"github.com/google/uuid"
 	"github.com/gofiber/fiber/v2"
+	"github.com/google/uuid"
 )
 
 func CreateUser(c *fiber.Ctx) error {
@@ -128,4 +131,32 @@ func GetUserGroups(c *fiber.Ctx) error {
 	return c.Status(fiber.StatusOK).JSON(fiber.Map{
 		"groups": groups,
 	})
+}
+
+func GetActiveSession(c *fiber.Ctx) error {
+	clerkId := c.Params("clerkID")
+	if clerkId == "" {
+		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
+			"error": "Missing clerkID",
+		})
+	}
+
+	var session models.StudySession
+
+	err := config.DB.Preload("User").Preload("Group").
+		Where("user_id = ? AND ended_at IS NULL", clerkId).
+		First(&session).Error
+
+	if err != nil {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			return c.Status(fiber.StatusNotFound).JSON(fiber.Map{
+				"message": "No active study session found for this user.",
+			})
+		}
+		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
+			"error": "Failed to retrieve active session",
+		})
+	}
+
+	return c.Status(fiber.StatusOK).JSON(session)
 }
