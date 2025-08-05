@@ -3,7 +3,7 @@ module github.com/Nitesh-04/locked-in
 go 1.24.1
 
 require (
-	github.com/gofiber/fiber/v2 v2.52.6
+	github.com/gofiber/fiber/v2 v2.52.9
 	github.com/google/uuid v1.6.0
 	github.com/joho/godotenv v1.5.1
 	gorm.io/driver/postgres v1.5.11
